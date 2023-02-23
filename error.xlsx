@@ -1,0 +1,62 @@
+m miyawaki
+react-dom.development.js:29840 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+localhost/:1 Access to fetch at 'http://localhost:8080/api/sample/getBirthStone' from origin 'http://localhost:3000' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. If an opaque response serves your needs, set the request's mode to 'no-cors' to fetch the resource with CORS disabled.
+:8080/api/sample/getBirthStone:1          Failed to load resource: net::ERR_FAILED
+App.js:9                  Uncaught (in promise) TypeError: Failed to fetch
+    at handleClick (App.js:9:1)
+    at HTMLUnknownElement.callCallback (react-dom.development.js:4164:1)
+    at Object.invokeGuardedCallbackDev (react-dom.development.js:4213:1)
+    at invokeGuardedCallback (react-dom.development.js:4277:1)
+    at invokeGuardedCallbackAndCatchFirstError (react-dom.development.js:4291:1)
+    at executeDispatch (react-dom.development.js:9041:1)
+    at processDispatchQueueItemsInOrder (react-dom.development.js:9073:1)
+    at processDispatchQueue (react-dom.development.js:9086:1)
+    at dispatchEventsForPlugins (react-dom.development.js:9097:1)
+    at react-dom.development.js:9288:1
+
+
+このエラーは、ブラウザが同一オリジンポリシー (SOP) に従っているため、別のオリジンからデータを取得することができない場合に発生するエラーです。ブラウザは、異なるオリジンからのリクエストに対してデフォルトでCORS制限を設定しています。
+
+Reactアプリケーションは、ローカルホストの3000番ポートで実行され、APIはローカルホストの8080番ポートで実行されているため、異なるオリジンとして処理されています。
+
+この問題を解決するためには、サーバーサイドでCORSを有効にするか、またはCORS拡張機能を使用して、ブラウザでCORSを一時的に無効にする必要があります。
+
+まず、サーバー側でCORSを有効にする方法については、以下のリンク先のドキュメントを参照してください。
+
+Enabling Cross Origin Requests for a RESTful Web Service
+CORS拡張機能を使用する場合は、以下の手順を実行して、ブラウザでCORSを一時的に無効にすることができます。
+
+Google Chromeの場合、以下の拡張機能をインストールして有効にします。
+CORS Unblock
+拡張機能を有効にしたら、ブラウザを再起動します。
+
+アプリケーションを再度実行し、APIからデータを取得できるか確認します。
+
+
+
+CORSを有効にするには、サーバー側でレスポンスヘッダーに Access-Control-Allow-Origin を追加する必要があります。以下は、Spring BootアプリケーションでCORSを有効にする方法の例です。
+
+RestApiControllerクラスに以下のアノテーションを追加します。
+java
+Copy code
+@RestController
+@RequestMapping("api/sample")
+public class RestApiController {
+
+    // ...
+
+    @CrossOrigin(origins = "http://localhost:3000")
+    @RequestMapping(value = "getBirthStone", method = RequestMethod.GET)
+    @ResponseBody
+    public BirthStone getBirthStone() {
+        BirthStone birthStone = new BirthStone("2月", "アメジスト", "紫");
+        return birthStone;
+    }
+
+    // ...
+}
+@CrossOrigin アノテーションの origins パラメータに、許可するオリジンを指定します。上記の例では、Reactアプリケーションが実行されているオリジンである http://localhost:3000 を許可しています。
+
+サーバーを再起動し、ReactアプリケーションからAPIにアクセスできるか確認します。
+
+これで、APIからのレスポンスヘッダーに Access-Control-Allow-Origin が含まれるようになり、ブラウザがCORS制限を解除して、ReactアプリケーションからAPIにアクセスできるようになります。
